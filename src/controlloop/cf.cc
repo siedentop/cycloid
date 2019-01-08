@@ -15,17 +15,14 @@ const int STEER_LIMIT_HIGH = 127;
 using Eigen::Vector3f;
 using Eigen::Matrix3f;
 
-static float clipf(float x, float min, float max) {
+namespace {
+template <typename T>
+T clip(T x, T min, T max) {
   if (x < min) x = min;
   if (x > max) x = max;
   return x;
 }
-
-static int16_t clipi16(int16_t x, int16_t min, int16_t max) {
-  if (x < min) x = min;
-  if (x > max) x = max;
-  return x;
-}
+}  // namespace
 
 class CFIR : public InputReceiver {
  public:
@@ -153,7 +150,7 @@ void controltest() {
     last_err = err;
     float uu = Kp*err + Ki*ierr + Kd*derr;
 
-    int8_t u = clipf(uu, -127, 127);
+    int8_t u = clip(uu, -127, 127);
     // if (target_vdot > 0 && u < 10) u = 10;
     if (!car.SetControls(n >> 4, u, 0)) {
       fprintf(stderr, "SetControls returned false?\n");
@@ -226,8 +223,8 @@ int main(int argc, char *argv[]) {
       - (t0.tv_sec + t0.tv_usec * 1e-6);
 
     if (js.ReadInput(&ir)) {
-      u_esc = clipi16(ir.Throttle() >> 8, -127, 127);
-      u_steer = clipi16(ir.Steering() >> 8, STEER_LIMIT_LOW, STEER_LIMIT_HIGH);
+      u_esc = clip(ir.Throttle() >> 8, -127, 127);
+      u_steer = clip(ir.Steering() >> 8, STEER_LIMIT_LOW, STEER_LIMIT_HIGH);
       // fprintf(stderr, "js %d %d %d %d\n", ir.Throttle(), ir.Steering(), u_esc, u_steer);
     }
     {
